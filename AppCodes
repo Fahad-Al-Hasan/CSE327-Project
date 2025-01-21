@@ -1,1 +1,20 @@
+package com.example.signupapp;
 
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+public class SignUpActivity extends AppCompatActivity {
+
+    private EditText usernameEditText, emailEditText, passwordEditText;
+    private Button signUpButton;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_sign_up);
