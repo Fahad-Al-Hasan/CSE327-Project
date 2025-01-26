@@ -124,6 +124,143 @@ fun main() {
     chunkFiles(inputFiles, chunkSize, outputDir)
 }
 
+Google Sign-in setup
+import android.content.Intent
+import android.os.Bundle
+import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.tasks.Task
+import com.google.api.services.drive.Drive
+import com.google.api.services.drive.DriveScopes
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var googleSignInClient: GoogleSignInClient
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestScopes(Scope(DriveScopes.DRIVE))
+            .requestEmail()
+            .build()
+
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
+
+        findViewById<Button>(R.id.loginButton).setOnClickListener {
+            signIn()
+        }
+    }
+
+    private fun signIn() {
+        val intent = googleSignInClient.signInIntent
+        signInLauncher.launch(intent)
+    }
+
+    private val signInLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                handleSignInResult(task)
+            }
+        }
+
+    private fun handleSignInResult(task: Task<GoogleSignInAccount>) {
+        try {
+            val account = task.getResult(ApiException::class.java)
+            Log.d("GoogleSignIn", "Signed in as: ${account?.email}")
+            // Pass the account to the Drive API initialization
+        } catch (e: ApiException) {
+            Log.e("GoogleSignIn", "Sign-in failed", e)
+        }
+    }
+}
+Chunk File storage Logic
+import android.content.Context
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+
+object FileChunker {
+
+    fun chunkFile(file: File, chunkSize: Int, context: Context): List<File> {
+        val chunkFiles = mutableListOf<File>()
+        val buffer = ByteArray(chunkSize)
+
+        FileInputStream(file).use { inputStream ->
+            var bytesRead: Int
+            var chunkIndex = 0
+
+            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                val chunkFile = File(context.cacheDir, "${file.nameWithoutExtension}_chunk$chunkIndex.${file.extension}")
+                FileOutputStream(chunkFile).use { outputStream ->
+                    outputStream.write(buffer, 0, bytesRead)
+                }
+                chunkFiles.add(chunkFile)
+                chunkIndex++
+            }
+        }
+        return chunkFiles
+    }
+}
+File search logic:
+import com.google.api.services.drive.Drive
+
+object SearchFiles {
+
+    fun searchByFileName(driveService: Drive, fileName: String): List<File> {
+        val query = "name contains '$fileName'"
+        val result = driveService.files().list().setQ(query).execute()
+        return result.files ?: emptyList()
+    }
+
+    fun reverseImageSearch(imageFile: File): List<String> {
+        // Implement reverse image search using Firebase ML or a custom hash algorithm
+        return listOf("Image1.jpg", "Image2.jpg") // Mocked result
+    }
+}
+Main User Interface:
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <Button
+        android:id="@+id/loginButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Login with Google" />
+
+    <EditText
+        android:id="@+id/searchInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search by file name" />
+
+    <Button
+        android:id="@+id/searchButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Search" />
+
+    <Button
+        android:id="@+id/uploadFileButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Upload File" />
+
+</LinearLayout>
+
+
+
+
 
 
 
