@@ -77,6 +77,54 @@ public class SignUpActivity extends AppCompatActivity {
     }
 }
 
+26/01/2025 - 
+Practice Code for chunking multiple files
+import android.os.Environment
+import java.io.*
+
+fun chunkFiles(files: List<File>, chunkSize: Int, outputDir: File) {
+    // Ensure the output directory exists
+    if (!outputDir.exists()) {
+        outputDir.mkdirs()
+    }
+
+    for (file in files) {
+        val fileName = file.nameWithoutExtension
+        val extension = file.extension
+
+        BufferedInputStream(FileInputStream(file)).use { inputStream ->
+            var chunkIndex = 1
+            var buffer = ByteArray(chunkSize)
+            var bytesRead: Int
+
+            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                val chunkFileName = "$fileName-chunk$chunkIndex.$extension"
+                val chunkFile = File(outputDir, chunkFileName)
+
+                FileOutputStream(chunkFile).use { outputStream ->
+                    outputStream.write(buffer, 0, bytesRead)
+                }
+
+                println("Created chunk: ${chunkFile.absolutePath}")
+                chunkIndex++
+            }
+        }
+    }
+}
+
+fun main() {
+    // Example usage
+    val inputFiles = listOf(
+        File(Environment.getExternalStorageDirectory(), "file1.txt"),
+        File(Environment.getExternalStorageDirectory(), "file2.txt")
+    )
+    val chunkSize = 1024 * 1024 // 1 MB
+    val outputDir = File(Environment.getExternalStorageDirectory(), "Chunks")
+
+    chunkFiles(inputFiles, chunkSize, outputDir)
+}
+
+
 
 
 
