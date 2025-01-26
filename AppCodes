@@ -1,0 +1,288 @@
+package com.example.signupapp;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+public class SignUpActivity extends AppCompatActivity {
+
+    private EditText usernameEditText, emailEditText, passwordEditText;
+    private Button signUpButton;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_sign_up);
+
+22/01/2025 - Practice Code
+package com.example.signupapp;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+public class SignUpActivity extends AppCompatActivity {
+
+    private EditText usernameEditText, emailEditText, passwordEditText;
+    private Button signUpButton;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_sign_up);
+
+        // Initialize UI components
+        usernameEditText = findViewById(R.id.editTextUsername);
+        emailEditText = findViewById(R.id.editTextEmail);
+        passwordEditText = findViewById(R.id.editTextPassword);
+        signUpButton = findViewById(R.id.buttonSignUp);
+
+        // Set OnClickListener for the Sign-Up button
+        signUpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String username = usernameEditText.getText().toString().trim();
+                String email = emailEditText.getText().toString().trim();
+                String password = passwordEditText.getText().toString().trim();
+
+                if (TextUtils.isEmpty(username)) {
+                    usernameEditText.setError("Username is required");
+                    return;
+                }
+
+                if (TextUtils.isEmpty(email)) {
+                    emailEditText.setError("Email is required");
+                    return;
+                }
+
+                if (TextUtils.isEmpty(password)) {
+                    passwordEditText.setError("Password is required");
+                    return;
+                }
+
+                // Simulate successful sign-up
+                Toast.makeText(SignUpActivity.this, "Sign-Up Successful!", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+}
+
+26/01/2025 - 
+Practice Code for chunking multiple files
+import android.os.Environment
+import java.io.*
+
+fun chunkFiles(files: List<File>, chunkSize: Int, outputDir: File) {
+    // Ensure the output directory exists
+    if (!outputDir.exists()) {
+        outputDir.mkdirs()
+    }
+
+    for (file in files) {
+        val fileName = file.nameWithoutExtension
+        val extension = file.extension
+
+        BufferedInputStream(FileInputStream(file)).use { inputStream ->
+            var chunkIndex = 1
+            var buffer = ByteArray(chunkSize)
+            var bytesRead: Int
+
+            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                val chunkFileName = "$fileName-chunk$chunkIndex.$extension"
+                val chunkFile = File(outputDir, chunkFileName)
+
+                FileOutputStream(chunkFile).use { outputStream ->
+                    outputStream.write(buffer, 0, bytesRead)
+                }
+
+                println("Created chunk: ${chunkFile.absolutePath}")
+                chunkIndex++
+            }
+        }
+    }
+}
+
+fun main() {
+    // Example usage
+    val inputFiles = listOf(
+        File(Environment.getExternalStorageDirectory(), "file1.txt"),
+        File(Environment.getExternalStorageDirectory(), "file2.txt")
+    )
+    val chunkSize = 1024 * 1024 // 1 MB
+    val outputDir = File(Environment.getExternalStorageDirectory(), "Chunks")
+
+    chunkFiles(inputFiles, chunkSize, outputDir)
+}
+
+Google Sign-in setup
+import android.content.Intent
+import android.os.Bundle
+import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.tasks.Task
+import com.google.api.services.drive.Drive
+import com.google.api.services.drive.DriveScopes
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var googleSignInClient: GoogleSignInClient
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestScopes(Scope(DriveScopes.DRIVE))
+            .requestEmail()
+            .build()
+
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
+
+        findViewById<Button>(R.id.loginButton).setOnClickListener {
+            signIn()
+        }
+    }
+
+    private fun signIn() {
+        val intent = googleSignInClient.signInIntent
+        signInLauncher.launch(intent)
+    }
+
+    private val signInLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                handleSignInResult(task)
+            }
+        }
+
+    private fun handleSignInResult(task: Task<GoogleSignInAccount>) {
+        try {
+            val account = task.getResult(ApiException::class.java)
+            Log.d("GoogleSignIn", "Signed in as: ${account?.email}")
+            // Pass the account to the Drive API initialization
+        } catch (e: ApiException) {
+            Log.e("GoogleSignIn", "Sign-in failed", e)
+        }
+    }
+}
+Chunk File storage Logic
+import android.content.Context
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+
+object FileChunker {
+
+    fun chunkFile(file: File, chunkSize: Int, context: Context): List<File> {
+        val chunkFiles = mutableListOf<File>()
+        val buffer = ByteArray(chunkSize)
+
+        FileInputStream(file).use { inputStream ->
+            var bytesRead: Int
+            var chunkIndex = 0
+
+            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                val chunkFile = File(context.cacheDir, "${file.nameWithoutExtension}_chunk$chunkIndex.${file.extension}")
+                FileOutputStream(chunkFile).use { outputStream ->
+                    outputStream.write(buffer, 0, bytesRead)
+                }
+                chunkFiles.add(chunkFile)
+                chunkIndex++
+            }
+        }
+        return chunkFiles
+    }
+}
+File search logic:
+import com.google.api.services.drive.Drive
+
+object SearchFiles {
+
+    fun searchByFileName(driveService: Drive, fileName: String): List<File> {
+        val query = "name contains '$fileName'"
+        val result = driveService.files().list().setQ(query).execute()
+        return result.files ?: emptyList()
+    }
+
+    fun reverseImageSearch(imageFile: File): List<String> {
+        // Implement reverse image search using Firebase ML or a custom hash algorithm
+        return listOf("Image1.jpg", "Image2.jpg") // Mocked result
+    }
+}
+Main User Interface:
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <Button
+        android:id="@+id/loginButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Login with Google" />
+
+    <EditText
+        android:id="@+id/searchInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search by file name" />
+
+    <Button
+        android:id="@+id/searchButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Search" />
+
+    <Button
+        android:id="@+id/uploadFileButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Upload File" />
+
+</LinearLayout>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
