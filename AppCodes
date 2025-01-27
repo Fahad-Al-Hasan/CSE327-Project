@@ -258,6 +258,34 @@ Main User Interface:
 
 </LinearLayout>
 
+27/01/2025
+Sorting Via indexing
+fun sortWithIndexing(input: List<Int>): Pair<List<Int>, List<Int>> {
+    // Pair each element with its index
+    val indexedList = input.mapIndexed { index, value -> Pair(index, value) }
+
+    // Sort the list based on the values
+    val sortedList = indexedList.sortedBy { it.second }
+
+    // Extract the sorted values and their original indices
+    val sortedValues = sortedList.map { it.second }
+    val originalIndices = sortedList.map { it.first }
+
+    return Pair(sortedValues, originalIndices)
+}
+
+fun main() {
+    val input = listOf(50, 20, 40, 10, 30)
+
+    // Sort and retrieve the results
+    val (sortedValues, originalIndices) = sortWithIndexing(input)
+
+    println("Original List: $input")
+    println("Sorted Values: $sortedValues")
+    println("Original Indices: $originalIndices")
+}
+
+
 
 
 
