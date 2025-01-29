@@ -16,8 +16,10 @@
     <!-- Upload Section -->
     <section class="upload-section">
       <h2>Upload File</h2>
-      <input type="file" id="fileInput" />
-      <button class="upload-btn" id="uploadBtn">Upload</button>
+      <form action="http://127.0.0.1:5000/upload" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" id="fileInput" />
+        <button class="upload-btn" type="submit">Upload</button>
+      </form>
     </section>
 
     <!-- Files List Section -->
