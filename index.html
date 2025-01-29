@@ -1,11 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazing Storage System</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <p>Hello World!</p>
+  <div class="container">
+    <header>
+      <h1>Amazing Storage System</h1>
+      <p>Store and manage files across multiple Google Drive accounts</p>
+    </header>
+
+    <!-- Upload Section -->
+    <section class="upload-section">
+      <h2>Upload File</h2>
+      <input type="file" id="fileInput" />
+      <button class="upload-btn" id="uploadBtn">Upload</button>
+    </section>
+
+    <!-- Files List Section -->
+    <section class="file-list-section">
+      <h2>Uploaded Files</h2>
+      <button class="list-btn" id="listFilesBtn">Browse Files</button>
+      <div id="fileList" class="file-list">
+        <!-- List of uploaded files will appear here -->
+      </div>
+    </section>
+    
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
