@@ -17,7 +17,7 @@ drive_service = build('drive', 'v3', credentials=creds)
 
 # Google Drive Folder IDs (Each belongs to a different Google Account)
 drive_folders = [
-    '1RX9n3bYgmzH8g_WapDOlvbMtJuNeo0My',  # Replace with actual Folder ID from Google Drive
+    '1RX9n3bYgmzH8g_WapDOlvbMtJuNeo0My',  # Kindly replace with actual Folder ID from Google Drive
     '1wCYPW0SdNHpz1VdMXLFBuo2YvPdWf4eY',
     '1feL26aFdeofoebbIYMUMk33MRVS6f6SL'
 ]
