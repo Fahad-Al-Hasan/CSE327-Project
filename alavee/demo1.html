@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Drive Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            background: #4285F4;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #357ae8;
+        }
+        input {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Manage Multiple Google Drive Accounts</h2>
+        <button onclick="window.location.href='/login'">Login with Google</button>
+
+        <h3>Logged-in Accounts</h3>
+        <ul id="accounts">
+            {% for account in accounts %}
+            <li>
+                {{ account }} 
+                <button onclick="logout('{{ account }}')">Logout</button>
+                <br>
+                <input type="file" id="file_{{ account }}">
+                <button onclick="uploadFile('{{ account }}')">Upload</button>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script>
+        function logout(email) {
+            window.location.href = "/logout/" + email;
+        }
+
+        function uploadFile(email) {
+            const fileInput = document.getElementById("file_" + email);
+            if (!fileInput.files.length) {
+                alert("Please select a file.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("email", email);
+            formData.append("file", fileInput.files[0]);
+
+            fetch("/upload", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+
+</body>
+</html>
