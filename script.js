@@ -1,7 +1,7 @@
 // Handle file upload functionality
 document.getElementById('uploadBtn').addEventListener('click', function (e) {
     const fileInput = document.getElementById('fileInput');
-    const file = fileInput.files[0];
+    const file = fileInput.files[0]; script.js 
     
     if (file) {
       const formData = new FormData();
@@ -45,7 +45,7 @@ document.getElementById('uploadBtn').addEventListener('click', function (e) {
           const ul = document.createElement('ul');
           data.files.forEach(file => {
             const li = document.createElement('li');
-            li.innerHTML = `${file.name} <a href="/download/${file.id}" target="_blank">Download</a>`;
+            li.innerHTML = ${file.name} <a href="/download/${file.id}" target="_blank">Download</a>;
             ul.appendChild(li);
           });
           fileList.appendChild(ul);
@@ -55,4 +55,3 @@ document.getElementById('uploadBtn').addEventListener('click', function (e) {
         console.error('Error fetching file list:', error);
       });
   }
-  
