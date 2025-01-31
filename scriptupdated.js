@@ -57,38 +57,58 @@ function fetchFileList() {
     })
     .then(data => {
         console.log("✅ Files received:", data);
-        const fileListDiv = document.getElementById("fileList");
-        fileListDiv.innerHTML = ""; 
-
-        if (!data.files || data.files.length === 0) {
-            fileListDiv.innerHTML = "<p>No files uploaded yet.</p>";
-            return;
-        }
-
-        data.files.forEach(file => {
-            let fileCard = document.createElement("div");
-            fileCard.classList.add("file-card");
-
-            let fileIcon = document.createElement("img");
-            fileIcon.src = "https://img.icons8.com/color/48/000000/document.png"; // Generic file icon
-
-            let fileName = document.createElement("div");
-            fileName.textContent = file.name;
-
-            let downloadLink = document.createElement("a");
-            downloadLink.href = file.download_link;
-            downloadLink.textContent = "Download";
-            downloadLink.target = "_blank";
-            downloadLink.classList.add("download-btn");
-
-            fileCard.appendChild(fileIcon);
-            fileCard.appendChild(fileName);
-            fileCard.appendChild(downloadLink);
-            fileListDiv.appendChild(fileCard);
-        });
+        renderFileList(data.files);
     })
     .catch(error => {
         console.error("❌ Error fetching files:", error);
         document.getElementById("fileList").innerHTML = '<p style="color: red;">Failed to fetch files.</p>';
     });
 }
+
+function renderFileList(files) {
+    const fileListDiv = document.getElementById("fileList");
+    fileListDiv.innerHTML = ""; 
+
+    if (!files || files.length === 0) {
+        fileListDiv.innerHTML = "<p>No files uploaded yet.</p>";
+        return;
+    }
+
+    // Get the selected sorting option
+    const sortOption = document.getElementById("sortFilter").value;
+
+    // Sorting Logic
+    files.sort((a, b) => {
+        if (sortOption === "name") {
+            return a.name.localeCompare(b.name);
+        } else if (sortOption === "time-new") {
+            return new Date(b.modifiedTime) - new Date(a.modifiedTime);
+        } else if (sortOption === "time-old") {
+            return new Date(a.modifiedTime) - new Date(b.modifiedTime);
+        }
+    });
+
+    files.forEach(file => {
+        let fileCard = document.createElement("div");
+        fileCard.classList.add("file-card");
+
+        let fileIcon = document.createElement("img");
+        fileIcon.src = "https://img.icons8.com/color/48/000000/document.png";
+
+        let fileName = document.createElement("div");
+        fileName.textContent = file.name;
+
+        let downloadLink = document.createElement("a");
+        downloadLink.href = file.download_link;
+        downloadLink.textContent = "Download";
+        downloadLink.target = "_blank";
+        downloadLink.classList.add("download-btn");
+
+        fileCard.appendChild(fileIcon);
+        fileCard.appendChild(fileName);
+        fileCard.appendChild(downloadLink);
+        fileListDiv.appendChild(fileCard);
+    });
+}
+
+document.getElementById("sortFilter").addEventListener("change", fetchFileList);

@@ -29,7 +29,18 @@
     <!-- Files List Section -->
     <section class="file-list-section">
       <h2>My Files</h2>
-      <button class="list-btn" id="listFilesBtn">Browse Files</button>
+
+      <!-- Sorting Filter -->
+      <div class="filter-section">
+        <label for="sortFilter">Sort By:</label>
+        <select id="sortFilter">
+          <option value="name">A-Z (Name)</option>
+          <option value="time-new">Newest First</option>
+          <option value="time-old">Oldest First</option>
+        </select>
+        <button class="list-btn" id="listFilesBtn">Browse Files</button>
+      </div>
+
       <div id="fileList" class="file-list">
         <!-- File cards will be displayed here -->
       </div>
