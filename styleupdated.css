@@ -1,7 +1,6 @@
 /* Google Font */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 
-/* Google Drive Color Palette */
 :root {
   --blue: #4285F4;
   --green: #34A853;
@@ -11,7 +10,6 @@
   --dark-gray: #5F6368;
 }
 
-/* Reset */
 * {
   margin: 0;
   padding: 0;
@@ -19,7 +17,6 @@
   font-family: 'Roboto', sans-serif;
 }
 
-/* Background */
 body {
   background: white;
   color: #202124;
@@ -30,7 +27,6 @@ body {
   padding: 20px;
 }
 
-/* Main Container */
 .container {
   width: 90%;
   max-width: 800px;
@@ -42,7 +38,6 @@ body {
   border: 2px solid var(--gray);
 }
 
-/* Header */
 header {
   display: flex;
   flex-direction: column;
@@ -62,7 +57,6 @@ header {
   margin-right: 10px;
 }
 
-/* Upload Section */
 .upload-section, .file-list-section {
   padding: 20px;
   border-radius: 10px;
@@ -72,7 +66,6 @@ header {
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* File Input */
 .file-input {
   padding: 12px;
   border: 2px solid #ddd;
@@ -82,7 +75,6 @@ header {
   cursor: pointer;
 }
 
-/* Buttons */
 .upload-btn, .list-btn {
   padding: 12px 18px;
   border: none;
@@ -100,7 +92,6 @@ header {
   transform: scale(1.05);
 }
 
-/* File List */
 .file-list {
   display: flex;
   flex-wrap: wrap;
@@ -109,8 +100,7 @@ header {
   padding-top: 10px;
 }
 
-/* File Cards */
-.file-list .file-card {
+.file-card {
   width: 160px;
   background: white;
   border-radius: 10px;
@@ -119,20 +109,14 @@ header {
   text-align: center;
   font-size: 14px;
   font-weight: bold;
-  transition: 0.3s ease-in-out;
 }
 
-.file-card:hover {
-  transform: translateY(-5px);
-  background: var(--gray);
+.download-btn {
+  display: block;
+  color: var(--blue);
+  margin-top: 5px;
 }
 
-.file-card img {
-  width: 50px;
-  margin-bottom: 5px;
-}
-
-/* Responsive */
 @media (max-width: 600px) {
   .container {
     width: 95%;
