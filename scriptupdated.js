@@ -1,10 +1,10 @@
 document.getElementById("listFilesBtn").addEventListener("click", function() {
-    let files = [
+    /*let files = [
         { name: "Document.pdf", icon: "https://img.icons8.com/color/48/000000/pdf.png" },
         { name: "Image.png", icon: "https://img.icons8.com/color/48/000000/image.png" },
         { name: "Report.docx", icon: "https://img.icons8.com/color/48/000000/ms-word.png" },
         { name: "Notes.txt", icon: "https://img.icons8.com/color/48/000000/document.png" }
-    ];
+    ];*/
 
     let fileListDiv = document.getElementById("fileList");
     fileListDiv.innerHTML = ""; 

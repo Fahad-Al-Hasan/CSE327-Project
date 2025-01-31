@@ -1,0 +1,16 @@
+app.get("/download/:id", async (req, res) => {
+    try {
+        const fileId = req.params.id;
+
+        const file = await drive.files.get(
+            { fileId, alt: "media" },
+            { responseType: "stream" }
+        );
+
+        res.setHeader("Content-Disposition", `attachment; filename="${fileId}"`);
+        file.data.pipe(res);
+    } catch (error) {
+        console.error("Download Error:", error);
+        res.status(500).json({ error: "File download failed" });
+    }
+});
