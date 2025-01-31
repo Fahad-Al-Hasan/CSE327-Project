@@ -1,0 +1,124 @@
+/* Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+:root {
+  --blue: #4285F4;
+  --green: #34A853;
+  --yellow: #FBBC05;
+  --red: #EA4335;
+  --gray: #F8F9FA;
+  --dark-gray: #5F6368;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Roboto', sans-serif;
+}
+
+body {
+  background: white;
+  color: #202124;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  width: 90%;
+  max-width: 800px;
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  border: 2px solid var(--gray);
+}
+
+header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 2px solid var(--gray);
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo img {
+  width: 50px;
+  margin-right: 10px;
+}
+
+.upload-section, .file-list-section {
+  padding: 20px;
+  border-radius: 10px;
+  background: var(--gray);
+  margin: 10px 0;
+  color: black;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.file-input {
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  width: 100%;
+  cursor: pointer;
+}
+
+.upload-btn, .list-btn {
+  padding: 12px 18px;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: 0.3s;
+  background: linear-gradient(135deg, var(--blue), var(--green));
+}
+
+.upload-btn:hover, .list-btn:hover {
+  transform: scale(1.05);
+}
+
+.file-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  padding-top: 10px;
+}
+
+.file-card {
+  width: 160px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.download-btn {
+  display: block;
+  color: var(--blue);
+  margin-top: 5px;
+}
+
+@media (max-width: 600px) {
+  .container {
+    width: 95%;
+  }
+}
