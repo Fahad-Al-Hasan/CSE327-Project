@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Drive-Like Storage</title>
+  <link rel="stylesheet" href="styleupdated.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Google_Drive_logo.png" alt="Drive Logo">
+        <h1>Amazing Storage System</h1>
+      </div>
+      <p>Store and manage files efficiently</p>
+    </header>
+
+    <!-- Upload Section -->
+    <section class="upload-section">
+      <h2>Upload File</h2>
+      <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="file" id="fileInput" class="file-input"/>
+        <button class="upload-btn" type="submit">Upload</button>
+      </form>
+      <p id="uploadStatus"></p>
+    </section>
+
+    <!-- Files List Section -->
+    <section class="file-list-section">
+      <h2>My Files</h2>
+
+      <!-- Sorting Filter -->
+      <div class="filter-section">
+        <label for="sortFilter">Sort By:</label>
+        <select id="sortFilter">
+          <option value="name">A-Z (Name)</option>
+          <option value="time-new">Newest First</option>
+          <option value="time-old">Oldest First</option>
+        </select>
+        <button class="list-btn" id="listFilesBtn">Browse Files</button>
+      </div>
+
+      <div id="fileList" class="file-list">
+        <!-- File cards will be displayed here -->
+      </div>
+    </section>
+  </div>
+
+  <script src="scriptupdated.js"></script>
+</body>
+</html>
