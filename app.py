@@ -27,28 +27,34 @@ drive_folders = [
     '1RX9n3bYgmzH8g_WapDOlvbMtJuNeo0My',  # Replace with actual Folder ID from Google Drive
     '1wCYPW0SdNHpz1VdMXLFBuo2YvPdWf4eY',
     '1feL26aFdeofoebbIYMUMk33MRVS6f6SL'
-]
+] #ekhane folder Id gulo deya acche jekhane ashole file save hobe
 
 def upload_to_drive(file_path, filename):
     """ Upload file to a randomly selected Google Drive folder """
-    folder_id = random.choice(drive_folders)
-    print(f"📤 Uploading {filename} to Google Drive folder {folder_id}")  # Debugging
+    folder_id = random.choice(drive_folders) #Randomly ekta folder choose kortese ekhane
+    print(f"📤 Uploading {filename} to Google Drive folder {folder_id}")  # Debugging message print hobe ekta
 
     try:
         file_metadata = {'name': filename, 'parents': [folder_id]}
+        #file er name and kothay save hobe sheta defined hocche ekhane
         media = MediaFileUpload(file_path, resumable=False)  # Prevents file lock issues
-        
+        #file lock issue mane modification or deletion or something else. ekhane sheta crack hobe
         file_drive = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-        
+        #body=file_metadata: Passes the metadata (filename & folder).
+        #media_body=media: Attaches the file content
         # Ensure file is fully uploaded before deleting
-        time.sleep(1)
-        try:
+        #fields='id': Requests only the file ID as the response.
+        #.execute(): Sends the request to Google Drive API and uploads the file.
+        
+        time.sleep(1) #FIle uploading ensuring
+        
+        try: #ei try er maddhome delete kora hocche local system theke
             os.remove(file_path)  # Delete after upload
             print(f"✅ File deleted: {file_path}")
         except Exception as e:
             print(f"❌ Could not delete file: {e}")
         
-        return file_drive.get('id')
+        return file_drive.get('id') #File Id ta return kore dibe
 
     except Exception as e:
         print(f"❌ Google Drive Upload Failed: {str(e)}")  # Debugging
@@ -56,6 +62,7 @@ def upload_to_drive(file_path, filename):
 
 def list_drive_files():
     """ Retrieve list of files from all configured Google Drive folders """
+    #Ekhane file fetch hoy jokhon browse e click kora hoy
     all_files = []
     
     for folder_id in drive_folders:
@@ -79,7 +86,7 @@ def list_drive_files():
 def home():
     return render_template('index.html')
 
-@app.route('/upload', methods=['POST'])
+@app.route('/upload', methods=['POST']) #It handles file upload
 def upload_file():
     if 'file' not in request.files:
         return jsonify({'message': "No file uploaded."}), 400
@@ -99,7 +106,7 @@ def upload_file():
     else:
         return jsonify({'message': "Google Drive upload failed."}), 500
 
-@app.route('/files', methods=['GET'])
+@app.route('/files', methods=['GET']) #SHob gulo file fetch kore
 def get_files():
     """ Returns a JSON response containing list of files with download links """
     files = list_drive_files()
