@@ -1,89 +1,155 @@
-from flask import Flask, request, render_template, jsonify
-from flask_cors import CORS
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
+from googleapiclient.http import MediaIoBaseUpload
+import hashlib
+import io
 import os
 import random
-import ssl
-import time
 
+# Initialize Flask app
 app = Flask(__name__)
-CORS(app)
+CORS(app)  # Enable CORS for all routes
 
-ssl._create_default_https_context = ssl._create_unverified_context
-
-SCOPES = ['https://www.googleapis.com/auth/drive']
-SERVICE_ACCOUNT_FILE = 'credentials.json'
-creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-
-drive_service = build('drive', 'v3', credentials=creds)
-
-drive_folders = [
-    '1RX9n3bYgmzH8g_WapDOlvbMtJuNeo0My',
-    '1wCYPW0SdNHpz1VdMXLFBuo2YvPdWf4eY',
-    '1feL26aFdeofoebbIYMUMk33MRVS6f6SL'
+# List of Google Drive service account credentials
+GDRIVE_CREDENTIALS = [
+    "service_account_1.json",
+    "service_account_2.json",
+    "service_account_3.json",
 ]
 
-CHUNK_SIZE = 50 * 1024 * 1024  # 50MB per chunk
+# Google Drive folder IDs for each account
+DRIVE_FOLDERS = [
+    "folder_id_1",
+    "folder_id_2",
+    "folder_id_3",
+]
 
-def split_file(file_path):
-    chunks = []
-    with open(file_path, 'rb') as f:
-        chunk_num = 0
-        while True:
-            chunk_data = f.read(CHUNK_SIZE)
-            if not chunk_data:
-                break
-            chunk_filename = f"{file_path}_part{chunk_num}"
-            with open(chunk_filename, 'wb') as chunk_file:
-                chunk_file.write(chunk_data)
-            chunks.append(chunk_filename)
-            chunk_num += 1
-    return chunks
+# Chunk size (e.g., 50MB)
+CHUNK_SIZE = 50 * 1024 * 1024
 
-def upload_to_drive(file_path, filename):
-    folder_id = random.choice(drive_folders)
-    print(f"📤 Uploading {filename} to Google Drive folder {folder_id}")
-    try:
-        file_metadata = {'name': filename, 'parents': [folder_id]}
-        media = MediaFileUpload(file_path, resumable=False)
-        file_drive = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-        time.sleep(1)
-        os.remove(file_path)
-        return file_drive.get('id')
-    except Exception as e:
-        print(f"❌ Google Drive Upload Failed: {str(e)}")
-        return None
+def get_drive_service(index):
+    """Get a Google Drive service instance for the given account index."""
+    creds = Credentials.from_service_account_file(GDRIVE_CREDENTIALS[index], scopes=["https://www.googleapis.com/auth/drive"])
+    return build("drive", "v3", credentials=creds)
 
-def merge_chunks(chunks, output_file):
-    with open(output_file, 'wb') as output:
-        for chunk in sorted(chunks):
-            with open(chunk, 'rb') as f:
-                output.write(f.read())
-    return output_file
 
-@app.route('/upload', methods=['POST'])
+# In-memory storage for file metadata
+file_metadata = {}
+
+def generate_file_hash(file_data):
+    """Generate a SHA-256 hash for the file."""
+    sha256_hash = hashlib.sha256()
+    sha256_hash.update(file_data)
+    return sha256_hash.hexdigest()
+
+def upload_chunk_to_drive(chunk_data, chunk_name, drive_index):
+    """Upload a chunk to Google Drive using the specified account."""
+    drive_service = get_drive_service(drive_index)
+    folder_id = DRIVE_FOLDERS[drive_index]
+
+    file_metadata = {"name": chunk_name, "parents": [folder_id]}
+    media = MediaIoBaseUpload(io.BytesIO(chunk_data), mimetype="application/octet-stream")
+    file = drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
+    return file["id"]
+
+@app.route("/upload", methods=["POST"])
 def upload_file():
-    if 'file' not in request.files:
-        return jsonify({'message': "No file uploaded."}), 400
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'message': "No selected file."}), 400
-    filename = os.path.basename(file.filename)
-    file_path = os.path.join("uploads", filename)
-    file.save(file_path)
-    chunks = split_file(file_path)
-    chunk_ids = []
-    for chunk in chunks:
-        chunk_id = upload_to_drive(chunk, os.path.basename(chunk))
-        if chunk_id:
-            chunk_ids.append(chunk_id)
-    if chunk_ids:
-        return jsonify({'message': "File uploaded successfully!", 'chunk_ids': chunk_ids}), 200
-    else:
-        return jsonify({'message': "Google Drive upload failed."}), 500
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
 
-if __name__ == '__main__':
-    os.makedirs("uploads", exist_ok=True)
-    app.run(debug=True)
+    file = request.files["file"]
+    file_data = file.read()
+
+    # Generate a unique hash for the file
+    file_hash = generate_file_hash(file_data)
+    file_name = file.filename
+
+    # Split the file into chunks
+    chunks = [file_data[i:i + CHUNK_SIZE] for i in range(0, len(file_data), CHUNK_SIZE)]
+    total_chunks = len(chunks)
+
+    # Upload chunks to Google Drive
+    chunk_ids = {}
+    for index, chunk_data in enumerate(chunks):
+        chunk_name = f"{file_name}_part{index}"
+        drive_index = index % len(GDRIVE_CREDENTIALS)  # Distribute chunks across accounts
+        chunk_id = upload_chunk_to_drive(chunk_data, chunk_name, drive_index)
+        chunk_ids[index] = {"drive_index": drive_index, "chunk_id": chunk_id}
+
+    # Store metadata
+    file_metadata[file_hash] = {
+        "filename": file_name,
+        "total_chunks": total_chunks,
+        "chunks": chunk_ids
+    }
+
+    return jsonify({"message": "File uploaded successfully", "file_hash": file_hash}), 200
+
+
+@app.route("/download/<file_hash>", methods=["GET"])
+def download_file(file_hash):
+    if file_hash not in file_metadata:
+        return jsonify({"error": "File not found"}), 404
+
+    metadata = file_metadata[file_hash]
+    chunks = metadata["chunks"]
+    file_name = metadata["filename"]
+
+    # Fetch and merge chunks
+    merged_file = io.BytesIO()
+    for index in sorted(chunks.keys()):
+        chunk_info = chunks[index]
+        drive_index = chunk_info["drive_index"]
+        chunk_id = chunk_info["chunk_id"]
+
+        drive_service = get_drive_service(drive_index)
+        chunk_data = drive_service.files().get_media(fileId=chunk_id).execute()
+        merged_file.write(chunk_data)
+
+    merged_file.seek(0)
+
+    return send_file(
+        merged_file,
+        as_attachment=True,
+        download_name=file_name,
+        mimetype="application/octet-stream"
+    )
+
+@app.route("/delete/<file_hash>", methods=["DELETE"])
+def delete_file(file_hash):
+    if file_hash not in file_metadata:
+        return jsonify({"error": "File not found"}), 404
+
+    metadata = file_metadata[file_hash]
+    chunks = metadata["chunks"]
+
+    # Delete chunks from Google Drive
+    for index in chunks.keys():
+        chunk_info = chunks[index]
+        drive_index = chunk_info["drive_index"]
+        chunk_id = chunk_info["chunk_id"]
+
+        drive_service = get_drive_service(drive_index)
+        drive_service.files().delete(fileId=chunk_id).execute()
+
+    # Remove metadata
+    del file_metadata[file_hash]
+
+    return jsonify({"message": "File deleted successfully"}), 200
+
+
+@app.route("/search/<filename>", methods=["GET"])
+def search_file(filename):
+    results = []
+    for file_hash, metadata in file_metadata.items():
+        if metadata["filename"] == filename:
+            results.append({
+                "file_hash": file_hash,
+                "filename": metadata["filename"],
+                "total_chunks": metadata["total_chunks"]
+            })
+
+    if not results:
+        return jsonify({"error": "No files found with that name"}), 404
+
+    return jsonify({"results": results}), 200

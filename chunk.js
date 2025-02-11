@@ -1,12 +1,3 @@
-document.addEventListener("DOMContentLoaded", function () {
-    document.getElementById("listFilesBtn").addEventListener("click", fetchFileList);
-    document.getElementById("uploadForm").addEventListener("submit", function (event) {
-        event.preventDefault();
-        uploadFile();
-    });
-    document.getElementById("sortFilter").addEventListener("change", fetchFileList);
-});
-
 function uploadFile() {
     const fileInput = document.getElementById("fileInput");
     const file = fileInput.files[0];
@@ -16,30 +7,58 @@ function uploadFile() {
         return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
+    const chunkSize = 5 * 1024 * 1024; // 5MB per chunk
+    const totalChunks = Math.ceil(file.size / chunkSize);
+    let uploadedChunks = 0;
 
-    fetch("http://127.0.0.1:5000/upload", {
+    for (let i = 0; i < totalChunks; i++) {
+        const start = i * chunkSize;
+        const end = Math.min(file.size, start + chunkSize);
+        const chunk = file.slice(start, end);
+
+        const formData = new FormData();
+        formData.append("chunk", chunk);
+        formData.append("index", i);
+        formData.append("total_chunks", totalChunks);
+        formData.append("filename", file.name);
+
+        fetch("http://127.0.0.1:5000/upload_chunk", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(`Chunk ${i + 1}/${totalChunks} uploaded:`, data);
+            uploadedChunks++;
+            if (uploadedChunks === totalChunks) {
+                finalizeUpload(file.name);
+            }
+        })
+        .catch(error => {
+            console.error(`❌ Upload Error on chunk ${i + 1}:`, error);
+        });
+    }
+}
+
+function finalizeUpload(filename) {
+    fetch("http://127.0.0.1:5000/finalize_upload", {
         method: "POST",
-        body: formData
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ filename })
     })
     .then(response => response.json())
     .then(data => {
-        const uploadStatus = document.getElementById("uploadStatus");
-        if (data.message) {
-            uploadStatus.innerHTML = `<span style="color: green;">${data.message}</span>`;
-            fileInput.value = "";
-            fetchFileList();
-        } else {
-            uploadStatus.innerHTML = `<span style="color: red;">Upload failed. Try again.</span>`;
-        }
+        console.log("✅ Upload finalized:", data);
+        document.getElementById("uploadStatus").innerHTML = `<span style="color: green;">${data.message}</span>`;
+        document.getElementById("fileInput").value = "";
+        fetchFileList();
     })
     .catch(error => {
-        console.error("❌ Upload Error:", error);
-        document.getElementById("uploadStatus").innerHTML = `<span style="color: red;">Upload error occurred.</span>`;
+        console.error("❌ Finalization Error:", error);
     });
 }
-
 function fetchFileList() {
     console.log("📡 Fetching file list...");
     fetch("http://127.0.0.1:5000/files", {
@@ -79,7 +98,7 @@ function renderFileList(files) {
     files.forEach(file => {
         let fileCard = document.createElement("div");
         fileCard.classList.add("file-card");
-        fileCard.setAttribute("data-id", file.id);
+        fileCard.setAttribute("data-hash", file.hash); // Use file hash instead of ID
 
         let fileIcon = document.createElement("img");
         fileIcon.src = "https://img.icons8.com/color/48/000000/document.png";
@@ -92,15 +111,15 @@ function renderFileList(files) {
         downloadButton.textContent = "Download";
         downloadButton.classList.add("download-btn");
         downloadButton.addEventListener("click", function () {
-            downloadFile(file.id);
+            downloadFile(file.hash); // Use file hash instead of ID
         });
 
         let deleteButton = document.createElement("button");
         deleteButton.textContent = "Delete";
         deleteButton.classList.add("delete-btn");
-        deleteButton.setAttribute('data-id', file.id);
+        deleteButton.setAttribute('data-hash', file.hash); // Use file hash instead of ID
         deleteButton.addEventListener("click", function () {
-            deleteFile(file.id, fileCard);
+            deleteFile(file.hash, fileCard); // Use file hash instead of ID
         });
 
         fileCard.appendChild(fileIcon);
@@ -110,9 +129,8 @@ function renderFileList(files) {
         fileListDiv.appendChild(fileCard);
     });
 }
-
-function downloadFile(fileId) {
-    fetch(`http://127.0.0.1:5000/download/${fileId}`, {
+function downloadFile(fileHash) {
+    fetch(`http://127.0.0.1:5000/download/${fileHash}`, {
         method: "GET"
     })
     .then(response => response.blob())
@@ -131,14 +149,13 @@ function downloadFile(fileId) {
         alert("Failed to download file.");
     });
 }
-
-function deleteFile(fileId, fileCard) {
+function deleteFile(fileHash, fileCard) {
     fetch("http://127.0.0.1:5000/delete", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ file_id: fileId })
+        body: JSON.stringify({ file_hash: fileHash }) // Use file hash instead of ID
     })
     .then(response => response.json())
     .then(data => {
