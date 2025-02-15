@@ -1,0 +1,18 @@
+Check
+
+A file management system
+Mail Details
+MAIL ID:    ahmed.jovan2000@gmail.com
+Pass:       Dictionary2000
+
+MAIL ID:   sharmin.laila1999@gmail.com
+Pass:       Dictionary1999
+
+MAIL ID:   dummyuser.000111@gmail.com
+Pass:       cse327project
+
+MAIL ID:   
+Pass:
+
+MAIL ID:   
+Pass:
