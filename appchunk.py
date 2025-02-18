@@ -1,40 +1,41 @@
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 import hashlib
 import io
 import os
-import random
+import logging
 
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# List of Google Drive service account credentials
+# Google Drive service account credentials and folder IDs
 GDRIVE_CREDENTIALS = [
     "service_account_1.json",
     "service_account_2.json",
     "service_account_3.json",
 ]
-
-# Google Drive folder IDs for each account
 DRIVE_FOLDERS = [
     "folder_id_1",
     "folder_id_2",
     "folder_id_3",
 ]
 
-# Chunk size (e.g., 50MB)
-CHUNK_SIZE = 50 * 1024 * 1024
+CHUNK_SIZE = 512 * 1024  # Chunk size of 512KB
+
+# File metadata storage (in-memory)
+file_metadata = {}
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
 
 def get_drive_service(index):
-    """Get a Google Drive service instance for the given account index."""
+    """Returns a Google Drive service instance for the specified account."""
     creds = Credentials.from_service_account_file(GDRIVE_CREDENTIALS[index], scopes=["https://www.googleapis.com/auth/drive"])
     return build("drive", "v3", credentials=creds)
-
-
-# In-memory storage for file metadata
-file_metadata = {}
 
 def generate_file_hash(file_data):
     """Generate a SHA-256 hash for the file."""
@@ -43,10 +44,9 @@ def generate_file_hash(file_data):
     return sha256_hash.hexdigest()
 
 def upload_chunk_to_drive(chunk_data, chunk_name, drive_index):
-    """Upload a chunk to Google Drive using the specified account."""
+    """Upload a chunk to Google Drive."""
     drive_service = get_drive_service(drive_index)
     folder_id = DRIVE_FOLDERS[drive_index]
-
     file_metadata = {"name": chunk_name, "parents": [folder_id]}
     media = MediaIoBaseUpload(io.BytesIO(chunk_data), mimetype="application/octet-stream")
     file = drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
@@ -54,13 +54,12 @@ def upload_chunk_to_drive(chunk_data, chunk_name, drive_index):
 
 @app.route("/upload", methods=["POST"])
 def upload_file():
+    """Handle file upload and chunking."""
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
 
     file = request.files["file"]
     file_data = file.read()
-
-    # Generate a unique hash for the file
     file_hash = generate_file_hash(file_data)
     file_name = file.filename
 
@@ -85,9 +84,9 @@ def upload_file():
 
     return jsonify({"message": "File uploaded successfully", "file_hash": file_hash}), 200
 
-
 @app.route("/download/<file_hash>", methods=["GET"])
 def download_file(file_hash):
+    """Handle file download (by merging chunks)."""
     if file_hash not in file_metadata:
         return jsonify({"error": "File not found"}), 404
 
@@ -95,7 +94,7 @@ def download_file(file_hash):
     chunks = metadata["chunks"]
     file_name = metadata["filename"]
 
-    # Fetch and merge chunks
+    # Merge chunks
     merged_file = io.BytesIO()
     for index in sorted(chunks.keys()):
         chunk_info = chunks[index]
@@ -117,6 +116,7 @@ def download_file(file_hash):
 
 @app.route("/delete/<file_hash>", methods=["DELETE"])
 def delete_file(file_hash):
+    """Handle file deletion by removing chunks from Google Drive."""
     if file_hash not in file_metadata:
         return jsonify({"error": "File not found"}), 404
 
@@ -137,19 +137,22 @@ def delete_file(file_hash):
 
     return jsonify({"message": "File deleted successfully"}), 200
 
-
-@app.route("/search/<filename>", methods=["GET"])
-def search_file(filename):
-    results = []
-    for file_hash, metadata in file_metadata.items():
-        if metadata["filename"] == filename:
-            results.append({
-                "file_hash": file_hash,
-                "filename": metadata["filename"],
-                "total_chunks": metadata["total_chunks"]
-            })
+@app.route("/search/all", methods=["GET"])
+def search_all_files():
+    """List all files uploaded (with metadata)."""
+    results = [
+        {
+            "file_hash": file_hash,
+            "filename": metadata["filename"],
+            "total_chunks": metadata["total_chunks"]
+        }
+        for file_hash, metadata in file_metadata.items()
+    ]
 
     if not results:
-        return jsonify({"error": "No files found with that name"}), 404
+        return jsonify({"error": "No files found."}), 404
 
     return jsonify({"results": results}), 200
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
