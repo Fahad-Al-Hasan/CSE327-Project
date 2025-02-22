@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Cloud File Storage</title>
+    <style>
+        /* General Page Styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #EEF5FF; /* Light pastel blue */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            height: 100%; /* Ensure the body takes up full height */
+        }
+
+        .container {
+            background: #9EB8D9; /* Soft light blue */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px;
+            height: 100%; /* Make container fill the whole page */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Ensures content is spaced out inside the container */
+        }
+
+        /* Header Styling */
+        header {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .logo img {
+            width: 50px;
+            vertical-align: middle;
+        }
+
+        .logo h1 {
+            display: inline;
+            font-size: 24px;
+            color: #A25772; /* Muted pinkish red */
+            margin-left: 10px;
+        }
+
+        header p {
+            color: #7A4B2D;
+            font-style: italic;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: #7C93C3; /* Cool blue */
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .upload-btn {
+            background: #A25772; /* Muted pinkish red */
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .upload-btn:hover {
+            background: #CD6688; /* Light reddish pink */
+        }
+
+        /* File List Section */
+        .file-list-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #9BBEC8; /* Soft blue-green */
+            border-radius: 5px;
+        }
+
+        .filter-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-btn {
+            background: #A25772; /* Muted pinkish red */
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .list-btn:hover {
+            background: #CD6688; /* Light reddish pink */
+        }
+
+        .file-list {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-card img {
+            width: 30px;
+            margin-right: 10px;
+        }
+
+        .file-name {
+            flex-grow: 1;
+            font-size: 16px;
+            color: #4b2f15;
+            margin-right: 10px;
+        }
+
+        .file-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .download-btn,
+        .delete-btn {
+            background: #A25772; /* Muted pinkish red */
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .download-btn:hover,
+        .delete-btn:hover {
+            background: #CD6688; /* Light reddish pink */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Google_Drive_logo.png" alt="Drive Logo">
+                <h1>Multi-Cloud File Storage</h1>
+            </div>
+            <p>Manage your files across multiple cloud platforms</p>
+        </header>
+        
+        <div class="upload-section">
+            <form id="uploadForm">
+                <input type="file" id="fileInput" required>
+                <button type="submit" class="upload-btn">Upload</button>
+            </form>
+            <p id="uploadStatus"></p>
+        </div>
+
+        <div class="file-list-section">
+            <div class="filter-section">
+                <button id="listFilesBtn" class="list-btn">List Files</button>
+            </div>
+            <div class="file-list" id="fileList"></div>
+        </div>
+    </div>
+    <script>
+        document.getElementById("uploadForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const file = document.getElementById("fileInput").files[0];
+            if (!file) {
+                alert("Please select a file!");
+                return;
+            }
+    
+            let formData = new FormData();
+            formData.append("file", file);
+    
+            try {
+                let response = await fetch("http://localhost:5000/upload", { method: "POST", body: formData });
+                if (response.ok) {
+                    let result = await response.json();
+                    document.getElementById("uploadStatus").textContent = result.message || "File uploaded successfully!";
+                    document.getElementById("uploadStatus").style.color = 'green';
+                    listFiles();
+                } else {
+                    document.getElementById("uploadStatus").textContent = "Error uploading file. Please try again.";
+                    document.getElementById("uploadStatus").style.color = 'red';
+                }
+            } catch (error) {
+                console.error("Upload error:", error);
+                document.getElementById("uploadStatus").textContent = "Error uploading file. Network or server issue.";
+                document.getElementById("uploadStatus").style.color = 'red';
+            }
+        });
+    
+        async function listFiles() {
+            const fileList = document.getElementById("fileList");
+            fileList.innerHTML = "";
+            try {
+                let response = await fetch("http://localhost:5000/search/all");
+                if (response.ok) {
+                    let result = await response.json();
+                    if (result.results.length > 0) {
+                        result.results.forEach(file => {
+                            let div = document.createElement("div");
+                            div.className = "file-card";
+                            div.innerHTML = `<span class="file-name">${file.filename}</span>
+                                <div class="file-buttons">
+                                    <a href="http://localhost:5000/download/${file.file_hash}" class="download-btn">Download</a>
+                                    <button onclick="deleteFile('${file.file_hash}')" class="delete-btn">Delete</button>
+                                </div>`;
+                            fileList.appendChild(div);
+                        });
+                    } else {
+                        fileList.innerHTML = "<p>No files found.</p>";
+                    }
+                } else {
+                    fileList.innerHTML = "<p>Error fetching file list. Please try again.</p>";
+                }
+            } catch (error) {
+                console.error("Error fetching files:", error);
+                fileList.innerHTML = "<p>Error fetching file list. Network or server issue.</p>";
+            }
+        }
+    
+        async function deleteFile(fileHash) {
+            try {
+                let response = await fetch(`http://localhost:5000/delete/${fileHash}`, { method: "DELETE" });
+                let result = await response.json();
+                alert(result.message || "Delete failed");
+                listFiles();
+            } catch (error) {
+                console.error("Delete error:", error);
+                alert("Error deleting file. Please try again.");
+            }
+        }
+    
+        document.getElementById("listFilesBtn").addEventListener("click", listFiles);
+        listFiles();
+    </script>
+    
+</body>
+</html>
