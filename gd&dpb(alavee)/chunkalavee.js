@@ -4,63 +4,77 @@ document.addEventListener("DOMContentLoaded", function () {
     const uploadStatus = document.getElementById("uploadStatus");
     const listFilesBtn = document.getElementById("listFilesBtn");
     const fileList = document.getElementById("fileList");
+    const sortDropdown = document.getElementById("sortDropdown");
 
     // Handle file upload
     uploadForm.addEventListener("submit", async function (event) {
         event.preventDefault();
         const file = fileInput.files[0];
-        
         if (!file) {
             uploadStatus.textContent = "Please select a file to upload.";
             return;
         }
-
         const formData = new FormData();
         formData.append("file", file);
-
         try {
-            console.log("Uploading file...");  // Debugging: confirm file upload process
+            console.log("Uploading file...");
             const response = await fetch("http://localhost:5000/upload", {
                 method: "POST",
                 body: formData,
             });
-
-            console.log("Response:", response);  // Debugging: log response object
-
             const result = await response.json();
-            console.log("Upload result:", result);  // Debugging: log result from the backend
-
             if (!response.ok) {
                 throw new Error(result.error || "Upload failed.");
             }
-
             uploadStatus.textContent = "File uploaded successfully!";
+            uploadStatus.style.color = "green";
             listFiles();  // refresh file list after upload
         } catch (error) {
-            console.error("Error during upload:", error);  // Debugging: log errors
+            console.error("Error during upload:", error);
             uploadStatus.textContent = `Error: ${error.message}`;
+            uploadStatus.style.color = "red";
         }
     });
 
-    // List files in the backend
+    // Fetch files from cloud storage using the /all-files endpoint
     async function listFiles() {
         fileList.innerHTML = "";
         try {
-            const response = await fetch("http://localhost:5000/search/all");
+            const response = await fetch("http://localhost:5000/all-files");
             const result = await response.json();
-            
-            console.log("File list result:", result);  // Debugging: log file list response
-
-            if (response.ok) {
-                result.results.forEach(file => {
+            let files = result.files || [];
+            const sortOption = sortDropdown.value;
+            if (sortOption === "upload_desc") {
+                files.sort((a, b) => b.upload_time - a.upload_time);
+            } else if (sortOption === "upload_asc") {
+                files.sort((a, b) => a.upload_time - b.upload_time);
+            } else if (sortOption === "name_asc") {
+                files.sort((a, b) => a.filename.localeCompare(b.filename));
+            } else if (sortOption === "name_desc") {
+                files.sort((a, b) => b.filename.localeCompare(a.filename));
+            }
+            if (files.length > 0) {
+                files.forEach(file => {
+                    // file.filename is the base file name.
+                    const extension = file.filename.split('.').pop().toLowerCase();
+                    let previewElement = "";
+                    if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+                        previewElement = `<img src="http://localhost:5000/preview_cloud/${encodeURIComponent(file.filename)}" alt="${file.filename}" style="max-width:100px; max-height:100px;">`;
+                    } else if (extension === 'pdf') {
+                        previewElement = `<iframe src="http://localhost:5000/preview_cloud/${encodeURIComponent(file.filename)}" style="width:100px; height:100px;"></iframe>`;
+                    } else {
+                        previewElement = `<span>[No Preview]</span>`;
+                    }
                     const fileCard = document.createElement("div");
                     fileCard.classList.add("file-card");
-                    fileCard.dataset.id = file.file_hash;
+                    // Use base file name as data-id
+                    fileCard.dataset.id = file.filename;
                     fileCard.innerHTML = `
                         <div class="file-name">${file.filename}</div>
+                        <div class="file-preview">${previewElement}</div>
                         <div class="file-buttons">
-                            <button class="download-btn" data-id="${file.file_hash}">Download</button>
-                            <button class="delete-btn" data-id="${file.file_hash}">Delete</button>
+                            <button class="download-btn" data-id="${file.filename}">Download</button>
+                            <button class="delete-btn" data-id="${file.filename}">Delete</button>
                         </div>
                     `;
                     fileList.appendChild(fileCard);
@@ -69,40 +83,39 @@ document.addEventListener("DOMContentLoaded", function () {
                 fileList.innerHTML = "<p>No files found.</p>";
             }
         } catch (error) {
-            console.error("Error loading files:", error);  // Debugging: log error in fetching files
+            console.error("Error loading files:", error);
             fileList.innerHTML = "<p>Error loading files.</p>";
         }
     }
 
-    // Handle file download and deletion
+    // Handle download and deletion actions
     fileList.addEventListener("click", async function (event) {
         if (event.target.classList.contains("download-btn")) {
-            const fileId = event.target.dataset.id;
-            console.log("Download file with ID:", fileId);  // Debugging: log file download ID
-            window.location.href = `http://localhost:5000/download/${fileId}`;
+            const baseName = event.target.dataset.id;
+            window.location.href = `http://localhost:5000/download_cloud/${encodeURIComponent(baseName)}`;
         }
-
         if (event.target.classList.contains("delete-btn")) {
-            const fileId = event.target.dataset.id;
+            const baseName = event.target.dataset.id;
             try {
-                const response = await fetch(`http://localhost:5000/delete/${fileId}`, {
+                const response = await fetch(`http://localhost:5000/delete_cloud/${encodeURIComponent(baseName)}`, {
                     method: "DELETE",
                 });
                 const result = await response.json();
                 if (response.ok) {
                     alert("File deleted successfully!");
-                    listFiles();  // Refresh the file list after deletion
+                    listFiles();
                 } else {
                     alert(`Error: ${result.error}`);
                 }
             } catch (error) {
                 alert("Deletion failed. Try again.");
-                console.error("Error during deletion:", error);  // Debugging: log error during deletion
+                console.error("Error during deletion:", error);
             }
         }
     });
 
-    // Load files on page load and when requested
     listFilesBtn.addEventListener("click", listFiles);
-    listFiles();  // Initial file listing on page load
+    sortDropdown.addEventListener("change", listFiles);
+    listFiles();
 });
+//LastCode
