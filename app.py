@@ -27,6 +27,7 @@ DB_NAME = "your_db_name"
 def get_db_connection():
     return pymysql.connect(host=DB_HOST, user=DB_USER, password=DB_PASSWORD, database=DB_NAME)
 
+<<<<<<< HEAD
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -49,11 +50,16 @@ init_db()
 # Google Drive service account credentials and folder IDs
 GDRIVE_CREDENTIALS = ["credentials.json"]
 DRIVE_FOLDERS = [
+=======
+# Google Drive Folder IDs (Each belongs to a different Google Account)
+drive_folders = [
+>>>>>>> 271b4a3f5264a6eb8c304499c7c2079981074e0b
     '1RX9n3bYgmzH8g_WapDOlvbMtJuNeo0My',  # Folder ID
     '1wCYPW0SdNHpz1VdMXLFBuo2YvPdWf4eY',
     '1feL26aFdeofoebbIYMUMk33MRVS6f6SL'
-]
+] #ekhane folder Id gulo deya acche jekhane ashole file save hobe
 
+<<<<<<< HEAD
 # Dropbox Access Tokens
 DROPBOX_TOKENS = [
     "dropbox_access_token_1",
@@ -61,14 +67,64 @@ DROPBOX_TOKENS = [
 ]
 
 CHUNK_SIZE = 512 * 1024  # 512KB chunks
+=======
+def upload_to_drive(file_path, filename):
+    """ Upload file to a randomly selected Google Drive folder """
+    folder_id = random.choice(drive_folders) #Randomly ekta folder choose kortese ekhane
+    print(f"📤 Uploading {filename} to Google Drive folder {folder_id}")  # Debugging message print hobe ekta
+
+    try:
+        file_metadata = {'name': filename, 'parents': [folder_id]}
+        #file er name and kothay save hobe sheta defined hocche ekhane
+        media = MediaFileUpload(file_path, resumable=False)  # Prevents file lock issues
+        #file lock issue mane modification or deletion or something else. ekhane sheta crack hobe
+        file_drive = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+        #body=file_metadata: Passes the metadata (filename & folder).
+        #media_body=media: Attaches the file content
+        # Ensure file is fully uploaded before deleting
+        #fields='id': Requests only the file ID as the response.
+        #.execute(): Sends the request to Google Drive API and uploads the file.
+        
+        time.sleep(1) #FIle uploading ensuring
+        
+        try: #ei try er maddhome delete kora hocche local system theke
+            os.remove(file_path)  # Delete after upload
+            print(f"✅ File deleted: {file_path}")
+        except Exception as e:
+            print(f"❌ Could not delete file: {e}")
+        
+        return file_drive.get('id') #File Id ta return kore dibe
+>>>>>>> 271b4a3f5264a6eb8c304499c7c2079981074e0b
 
 # Google Drive and Dropbox Helper Functions
 def get_drive_service(index):
     creds = Credentials.from_service_account_file(GDRIVE_CREDENTIALS[index], scopes=["https://www.googleapis.com/auth/drive"])
     return build("drive", "v3", credentials=creds)
 
+<<<<<<< HEAD
 def get_dropbox_client(index):
     return dropbox.Dropbox(DROPBOX_TOKENS[index])
+=======
+def list_drive_files():
+    """ Retrieve list of files from all configured Google Drive folders """
+    #Ekhane file fetch hoy jokhon browse e click kora hoy
+    all_files = []
+    
+    for folder_id in drive_folders:
+        try:
+            results = drive_service.files().list(
+                q=f"'{folder_id}' in parents and trashed=false",
+                fields="files(id, name, modifiedTime)",
+                orderBy="modifiedTime desc"
+            ).execute()
+            
+            files = results.get('files', [])
+            for file in files:
+                file['download_link'] = f"https://drive.google.com/uc?id={file['id']}&export=download"
+                all_files.append(file)
+        except Exception as e:
+            print(f"❌ Error fetching files from folder {folder_id}: {e}")
+>>>>>>> 271b4a3f5264a6eb8c304499c7c2079981074e0b
 
 def upload_chunk_to_drive(chunk_data, chunk_name):
     for index in range(len(GDRIVE_CREDENTIALS)):
@@ -88,6 +144,7 @@ def upload_chunk_to_dropbox(chunk_data, chunk_name):
         return {"platform": "dropbox", "account_index": index, "chunk_id": path}
     return None
 
+<<<<<<< HEAD
 def upload_chunk(chunk_data, chunk_name):
     drive_result = upload_chunk_to_drive(chunk_data, chunk_name)
     if drive_result:
@@ -98,6 +155,9 @@ def upload_chunk(chunk_data, chunk_name):
     return None
 
 @app.route("/upload", methods=["POST"])
+=======
+@app.route('/upload', methods=['POST']) #It handles file upload
+>>>>>>> 271b4a3f5264a6eb8c304499c7c2079981074e0b
 def upload_file():
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
@@ -136,8 +196,16 @@ def download_file(file_hash):
     if not chunks:
         return jsonify({"error": "File not found"}), 404
 
+<<<<<<< HEAD
     file_name = chunks[0][0]
     merged_file = io.BytesIO()
+=======
+@app.route('/files', methods=['GET']) #SHob gulo file fetch kore
+def get_files():
+    """ Returns a JSON response containing list of files with download links """
+    files = list_drive_files()
+    return jsonify({'files': files})
+>>>>>>> 271b4a3f5264a6eb8c304499c7c2079981074e0b
 
     for chunk in chunks:
         chunk_index, platform, account_index, chunk_id = chunk[1], chunk[2], chunk[3], chunk[4]

@@ -1,6 +1,6 @@
 const express = require("express");
 const multer = require("multer");
-const { google } = require("googleapis");
+const { google } = require("googleapis"); //google apis for google drive authentication
 const fs = require("fs");
 const cors = require("cors");
 
@@ -8,7 +8,7 @@ require("dotenv").config();
 const app = express();
 app.use(cors());
 const upload = multer({ dest: "uploads/" });
-
+//multer for handling file uploads
 const auth = new google.auth.GoogleAuth({
     keyFile: "google-drive-key.json",
     scopes: ["https://www.googleapis.com/auth/drive.file"]
