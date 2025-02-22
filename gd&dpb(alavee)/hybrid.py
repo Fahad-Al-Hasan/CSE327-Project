@@ -17,7 +17,9 @@ GDRIVE_CREDENTIALS = [
     'credentials.json'
 ]
 DRIVE_FOLDERS = [
-    "folder_id_1",
+    '1RX9n3bYgmzH8g_WapDOlvbMtJuNeo0My',  # Folder ID
+    '1wCYPW0SdNHpz1VdMXLFBuo2YvPdWf4eY',
+    '1feL26aFdeofoebbIYMUMk33MRVS6f6SL'
 ]
 
 # Dropbox Access Tokens

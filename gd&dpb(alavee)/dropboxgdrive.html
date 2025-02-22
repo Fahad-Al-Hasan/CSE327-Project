@@ -15,7 +15,6 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            height: 100%; /* Ensure the body takes up full height */
         }
 
         .container {
@@ -25,10 +24,6 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             width: 100%;
             max-width: 600px;
-            height: 100%; /* Make container fill the whole page */
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between; /* Ensures content is spaced out inside the container */
         }
 
         /* Header Styling */
@@ -122,11 +117,6 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        .file-card img {
-            width: 30px;
-            margin-right: 10px;
-        }
-
         .file-name {
             flex-grow: 1;
             font-size: 16px;
@@ -167,6 +157,7 @@
             <p>Manage your files across multiple cloud platforms</p>
         </header>
         
+        <!-- Upload Section -->
         <div class="upload-section">
             <form id="uploadForm">
                 <input type="file" id="fileInput" required>
@@ -175,14 +166,17 @@
             <p id="uploadStatus"></p>
         </div>
 
+        <!-- File List Section -->
         <div class="file-list-section">
             <div class="filter-section">
-                <button id="listFilesBtn" class="list-btn">List Files</button>
+                <button id="listFilesBtn" class="list-btn">Refresh Files</button>
             </div>
             <div class="file-list" id="fileList"></div>
         </div>
     </div>
+
     <script>
+        // Upload File
         document.getElementById("uploadForm").addEventListener("submit", async function(event) {
             event.preventDefault();
             const file = document.getElementById("fileInput").files[0];
@@ -190,45 +184,53 @@
                 alert("Please select a file!");
                 return;
             }
-    
-            let formData = new FormData();
+
+            const formData = new FormData();
             formData.append("file", file);
-    
+
             try {
-                let response = await fetch("http://localhost:5000/upload", { method: "POST", body: formData });
+                const response = await fetch("http://localhost:5000/upload", {
+                    method: "POST",
+                    body: formData,
+                });
+
                 if (response.ok) {
-                    let result = await response.json();
+                    const result = await response.json();
                     document.getElementById("uploadStatus").textContent = result.message || "File uploaded successfully!";
-                    document.getElementById("uploadStatus").style.color = 'green';
-                    listFiles();
+                    document.getElementById("uploadStatus").style.color = "green";
+                    listFiles(); // Fetch and display files after upload
                 } else {
                     document.getElementById("uploadStatus").textContent = "Error uploading file. Please try again.";
-                    document.getElementById("uploadStatus").style.color = 'red';
+                    document.getElementById("uploadStatus").style.color = "red";
                 }
             } catch (error) {
                 console.error("Upload error:", error);
                 document.getElementById("uploadStatus").textContent = "Error uploading file. Network or server issue.";
-                document.getElementById("uploadStatus").style.color = 'red';
+                document.getElementById("uploadStatus").style.color = "red";
             }
         });
-    
+
+        // Fetch and Display Files
         async function listFiles() {
             const fileList = document.getElementById("fileList");
-            fileList.innerHTML = "";
+            fileList.innerHTML = ""; // Clear the list before fetching
+
             try {
-                let response = await fetch("http://localhost:5000/search/all");
+                const response = await fetch("http://localhost:5000/files");
                 if (response.ok) {
-                    let result = await response.json();
-                    if (result.results.length > 0) {
-                        result.results.forEach(file => {
-                            let div = document.createElement("div");
-                            div.className = "file-card";
-                            div.innerHTML = `<span class="file-name">${file.filename}</span>
+                    const result = await response.json();
+                    if (result.files && result.files.length > 0) {
+                        result.files.forEach(file => {
+                            const fileCard = document.createElement("div");
+                            fileCard.className = "file-card";
+                            fileCard.innerHTML = `
+                                <span class="file-name">${file.filename}</span>
                                 <div class="file-buttons">
                                     <a href="http://localhost:5000/download/${file.file_hash}" class="download-btn">Download</a>
                                     <button onclick="deleteFile('${file.file_hash}')" class="delete-btn">Delete</button>
-                                </div>`;
-                            fileList.appendChild(div);
+                                </div>
+                            `;
+                            fileList.appendChild(fileCard);
                         });
                     } else {
                         fileList.innerHTML = "<p>No files found.</p>";
@@ -241,22 +243,27 @@
                 fileList.innerHTML = "<p>Error fetching file list. Network or server issue.</p>";
             }
         }
-    
+
+        // Delete File
         async function deleteFile(fileHash) {
-            try {
-                let response = await fetch(`http://localhost:5000/delete/${fileHash}`, { method: "DELETE" });
-                let result = await response.json();
-                alert(result.message || "Delete failed");
-                listFiles();
-            } catch (error) {
-                console.error("Delete error:", error);
-                alert("Error deleting file. Please try again.");
+            if (confirm("Are you sure you want to delete this file?")) {
+                try {
+                    const response = await fetch(`http://localhost:5000/delete/${fileHash}`, {
+                        method: "DELETE",
+                    });
+                    const result = await response.json();
+                    alert(result.message || "File deleted successfully!");
+                    listFiles(); // Refresh the file list after deletion
+                } catch (error) {
+                    console.error("Delete error:", error);
+                    alert("Error deleting file. Please try again.");
+                }
             }
         }
-    
-        document.getElementById("listFilesBtn").addEventListener("click", listFiles);
-        listFiles();
+
+        // Initial Fetch of Files
+        document.addEventListener("DOMContentLoaded", listFiles); // Fetch files when the page loads
+        document.getElementById("listFilesBtn").addEventListener("click", listFiles); // Refresh files on button click
     </script>
-    
 </body>
 </html>
