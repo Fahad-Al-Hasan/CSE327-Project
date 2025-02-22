@@ -1,43 +1,40 @@
-document.getElementById('listFilesBtn').addEventListener('click', function () {
+document.getElementById("listFilesBtn").addEventListener("click", function () {
   fetchFileList();
 });
 
-function fetchFileList() {
-  console.log("📡 Fetching file list..."); // Debugging log
+document.getElementById("uploadForm").addEventListener("submit", function (event) {
+  event.preventDefault();
+  uploadFile();
+});
 
-  fetch('http://127.0.0.1:5000/files', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache'  // Prevents cached results
-    }
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(data => {
-    console.log("✅ Files received:", data); // Debugging log
-    const fileList = document.getElementById('fileList');
-    fileList.innerHTML = ''; // Clear previous list
+async function uploadFile() {
+  const fileInput = document.getElementById("fileInput");
+  const file = fileInput.files[0];
 
-    if (!data.files || data.files.length === 0) {
-      fileList.innerHTML = '<p>No files uploaded yet.</p>';
+  if (!file) {
+      alert("Please select a file to upload.");
       return;
-    }
+  }
 
-    const ul = document.createElement('ul');
-    data.files.forEach(file => {
-      const li = document.createElement('li');
-      li.innerHTML = `${file.name} <a href="${file.download_link}" target="_blank">Download</a>`;
-      ul.appendChild(li);
-    });
-    fileList.appendChild(ul);
+  document.getElementById("uploadStatus").innerHTML = "Uploading...";
+  const formData = new FormData();
+  formData.append("file", file);
+
+  fetch("http://127.0.0.1:5000/upload", {
+      method: "POST",
+      body: formData
   })
-  .catch(error => {
-    console.error("❌ Error fetching files:", error);
-    document.getElementById('fileList').innerHTML = '<p style="color: red;">Failed to fetch files. Check console for details.</p>';
-  });
+  .then(response => response.json())
+  .then(data => {
+      document.getElementById("uploadStatus").innerHTML = data.message;
+      fetchFileList();
+  })
+  .catch(error => console.error("Upload error:", error));
+}
+
+function fetchFileList() {
+  fetch("http://127.0.0.1:5000/files")
+  .then(response => response.json())
+  .then(data => console.log(data.files))
+  .catch(error => console.error("Error fetching files:", error));
 }

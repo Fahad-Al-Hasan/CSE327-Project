@@ -77,7 +77,7 @@ function renderFileList(files) {
     // Get the selected sorting option
     const sortOption = document.getElementById("sortFilter").value;
 
-    // Sorting Logic
+    // Sorting Logic by fahad al hasan
     files.sort((a, b) => {
         if (sortOption === "name") {
             return a.name.localeCompare(b.name);
@@ -112,3 +112,4 @@ function renderFileList(files) {
 }
 
 document.getElementById("sortFilter").addEventListener("change", fetchFileList);
+//last code
