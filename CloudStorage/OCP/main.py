@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
-from .Gdrive import GoogleDriveStorage
-from .Drobox import DropboxStorage
-from .chunkmanager import ChunkManager
+from CloudStorage.OCP.Gdrive import GoogleDriveStorage
+from CloudStorage.OCP.Drobox import DropboxStorage
+from CloudStorage.OCP.chunkmanager import ChunkManager
 import hashlib
 import io
 import time
