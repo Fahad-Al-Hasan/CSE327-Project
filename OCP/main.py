@@ -1,12 +1,15 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
-from Gdrive import GoogleDriveStorage
-from Drobox import DropboxStorage
-from chunkmanager import ChunkManager
+from storage.Gdrive import GoogleDriveStorage
+from storage.Drobox import DropboxStorage
+from storage.chunkmanager import ChunkManager
 import hashlib
 import io
 import time
-import mimetypes
 
 app = Flask(__name__)
 CORS(app)
