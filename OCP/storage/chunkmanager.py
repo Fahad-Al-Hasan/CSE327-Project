@@ -1,9 +1,8 @@
 import random
 from typing import List
-from .storage_abstract import CloudStorage
+from storage.storage_abstract import CloudStorage
 
 class ChunkManager:
-    """Manages chunk upload, download, and deletion across multiple cloud platforms and accounts."""
 
     def __init__(self, storage_services: List[CloudStorage]):
         self.storage_services = storage_services

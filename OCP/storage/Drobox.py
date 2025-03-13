@@ -1,5 +1,5 @@
 import dropbox
-from .storage_abstract import CloudStorage
+from storage.storage_abstract import CloudStorage
 
 class DropboxStorage(CloudStorage):
     """Dropbox implementation of CloudStorage."""

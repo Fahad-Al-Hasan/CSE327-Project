@@ -1,7 +1,3 @@
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from storage.Gdrive import GoogleDriveStorage
@@ -14,14 +10,14 @@ import time
 app = Flask(__name__)
 CORS(app)
 
-# Initialize multiple Google Drive accounts
+# Google Drive accounts
 google_drive_accounts = [
     GoogleDriveStorage("credentials1.json", '1RX9n3bYgmzH8g_WapDOlvbMtJuNeo0My'),
     GoogleDriveStorage("credentials2.json", '1wCYPW0SdNHpz1VdMXLFBuo2YvPdWf4eY'),
     GoogleDriveStorage("credentials3.json", '1feL26aFdeofoebbIYMUMk33MRVS6f6SL')
 ]
 
-# Initialize multiple Dropbox accounts
+# Dropbox accounts
 dropbox_accounts = [
     DropboxStorage("sl.u.AFl6Oy-NaSsZyd1D9qqIbPr662YVoQKctxrHDdePPEYiurzuAmRbofhQc3Q1ARzNLIFhWfzJeOZwSvc2cAAc19LvnpTqawg6fVNFiebz1Iy7lMY_BJa8KcH7VN_GEymr19yea731VI0UeQaFLECuEvyr9gr2hBprDuu5sRSp65oFGptMoRo7aXehDVfHGfAw5KBaxql8PY2W9kRq7vNj0Xjiy-kT371OsiKyKPy7CInWl84R8j4-fyT7SkAkdnZ47mutmwcytPoAOlTlxHTb1bGjNnHQB8oQmq34aoxpNO8XvSB4g-63-dqIWbF0EuJN8eiOlvCxcjTiA4kHpy6ZW2QAGlFZ9AfcARa-5mOgCYc941w08Q6GNUSkz4SchsABt-hXJeMI2jbvyKeqVwTO-AQ8D3BoM9L8FmKEnnMaVDKK_AbyT8TmkQXODsnIZLULCNMZEyNe4WGpzCAkvHHAQmt5O7K9aiGQ3DhiHiTfxlXkOyoF-yDINGrfwdTITlkjDq_PYAH99IzqJVGQOTVpS8yXujvkVrwEajxuFm4EdeoaV5lAEoA3xznNTeozwJ46fd5Y6TYcw689UjVm-247SKCHp-6qSp6c4RycPX3aQq0iBc8ix2ZyaS2XjOPntNFL9MzWiDIswXY9HEfOlyp66hBtoImmorVCx3ojebOFg8Rhtha_nb-NOX9DFBVAadDB8P3eoPUndcDE6wU_xCgqx3WEiWWh1-xb2hLkFoyZeGE4NT8gU7JCr2sNXxZFqyAkKDIal7I7ZOsYrxQ4VamiuqnbLD5VTnxlMUDTrdeeapmPnsnm0T0GGHnlUODC_D-FxXQUqPyjZK8vbGfM8XzQJJl4DnbKofhfHMPHQXyEomiiUCN2TskkeqP4sFgmQ8YI3zZ4LXU2hu8oTR76ABmUXjlDxfd5xao-p1TXfz8QCDsy3Xlln5Dra5sXeM_I_K6cEXfJkJCp6PY_hvCc4obOKD0qa8Wccazvlizi3FD7o3NmyqjHj5sNScCl3r1D_FHQsb3ZEx7NJ1Wf0R-akfe9QCLdD05kmamvvdQANBqNSJKR2vwu1JpKMLAm4jICSXK-B1wfPcGcnCDITuLNUyUo_yqNuOBXGyILfjvg_R0sR-Sl-0hKQspPBkc8NAhXft1KArFLuCrUazLUPAW7GUTc73rAjLYtWJIZGGLmLQLqoW8bI62BTauFhwEVhyuo81o2cDso52HRnomPRr6UZ9usRh_L5fI4l0K1rKPpimGTOBSTrwgRQ8jzKvWGrQZCmPP1n7RxYStQgy1PVnoKGmT2BYJUsyca31LTziVR7Hr1j9yRIshyLz13C8cekfoR-2FxMyctZuI_s4zaXkNd0Qlhw_JWUNss_trb83jkI-VFo0heyct5K4CsqkqAo_cNqMKwEKxFRxsseDGMyyx6I6gwS3ai")
 ]
@@ -29,7 +25,7 @@ dropbox_accounts = [
 # Combine all storage services
 storage_services = google_drive_accounts + dropbox_accounts
 
-# Initialize ChunkManager
+# ChunkManager
 chunk_manager = ChunkManager(storage_services)
 
 # In-memory storage for file metadata

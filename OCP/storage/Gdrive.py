@@ -1,27 +1,24 @@
-import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from .storage_abstract import CloudStorage
+from storage.storage_abstract import CloudStorage
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 import io
 import logging
 
-# Set up logging
+#logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class GoogleDriveStorage(CloudStorage):
-    """Google Drive implementation of CloudStorage."""
-
+    
     def __init__(self, credentials_file: str, folder_id: str):
         try:
             # Verify the credentials file exists
             if not os.path.exists(credentials_file = os.path.abspath("credentials1.json")):
                 raise FileNotFoundError(f"Credentials file not found: {credentials_file}")
 
-            # Load credentials
+            #credentials
             self.credentials = Credentials.from_service_account_file(
                 credentials_file,
                 scopes=["https://www.googleapis.com/auth/drive"]
