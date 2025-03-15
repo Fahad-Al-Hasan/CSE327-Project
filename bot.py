@@ -16,7 +16,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Telegram Bot Token
-TELEGRAM_BOT_TOKEN = "8177749899:AAF0Rf3bnCAyxSva3OJce8_WjPtIyO-ryec"
+TELEGRAM_BOT_TOKEN = ""
 
 # Google Drive service account credentials
 GDRIVE_CREDENTIALS = "credentials.json"
